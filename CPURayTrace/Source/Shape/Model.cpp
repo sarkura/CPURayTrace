@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "rapidobj.hpp"
 
 Model::Model(const std::vector<Triangle> InTriangles) :
 	Triangles(InTriangles)
@@ -40,45 +41,63 @@ std::optional<HitInfo> Model::Intersect(const Ray& InRay, float T_Min /*= 1e-5*/
 
 bool Model::LoadFile(const std::filesystem::path& FilePath)
 {
-	std::vector<glm::vec3> Positions;
-	std::vector<glm::vec3> Normals;
 
-	std::ifstream File(FilePath);
-	if (!File.good())
-	{
-		//std::cout << "Open File " << FilePath << " Failed!" << std::endl;
-		return false;
-	}
+	auto LoadResult = rapidobj::ParseFile(FilePath, rapidobj::MaterialLibrary::Ignore());
 
-	std::string Line;
-	char Trash;
-	while (!File.eof())
+	for (auto& LoadShape : LoadResult.shapes)
 	{
-		std::getline(File, Line);
-		std::istringstream Iss(Line);
-		if (Line.compare(0, 2, "v ") == 0)
-		{
-			glm::vec3 Position;
-			Iss >> Trash >> Position.x >> Position.y >> Position.z;
-			Positions.push_back(Position);
-		}
-		else if (Line.compare(0, 2, "vn") == 0)
-		{
-			glm::vec3 Normal;
-			Iss >> Trash >> Trash >> Normal.x >> Normal.y >> Normal.z;
-			Normals.push_back(Normal);
-		}
-		else if (Line.compare(0, 2, "f ") == 0)
-		{
-			glm::ivec3 IdV, IdVN;
-			Iss >> Trash;
-			Iss >> IdV.x >> Trash >> Trash >> IdVN.x;
-			Iss >> IdV.y >> Trash >> Trash >> IdVN.y;
-			Iss >> IdV.z >> Trash >> Trash >> IdVN.z;
-			Triangles.push_back(Triangle(
-				Positions[IdV.x - 1], Positions[IdV.y - 1], Positions[IdV.z - 1],
-				Normals[IdVN.x - 1], Normals[IdVN.y - 1], Normals[IdVN.z - 1]
-			));
+		size_t Index_Offset = 0;
+		for (size_t num_face_vectex : LoadShape.mesh.num_face_vertices) {
+			if (num_face_vectex == 3) {
+				auto Index = LoadShape.mesh.indices[Index_Offset];
+				glm::vec3 Pos0{
+					LoadResult.attributes.positions[Index.position_index * 3 + 0],
+					LoadResult.attributes.positions[Index.position_index * 3 + 1],
+					LoadResult.attributes.positions[Index.position_index * 3 + 2]
+				};
+				Index = LoadShape.mesh.indices[Index_Offset + 1];
+				glm::vec3 Pos1{
+					LoadResult.attributes.positions[Index.position_index * 3 + 0],
+					LoadResult.attributes.positions[Index.position_index * 3 + 1],
+					LoadResult.attributes.positions[Index.position_index * 3 + 2]
+				};
+				Index = LoadShape.mesh.indices[Index_Offset + 2];
+				glm::vec3 Pos2{
+					LoadResult.attributes.positions[Index.position_index * 3 + 0],
+					LoadResult.attributes.positions[Index.position_index * 3 + 1],
+					LoadResult.attributes.positions[Index.position_index * 3 + 2]
+				};
+
+				if (Index.normal_index >= 0) {
+					Index = LoadShape.mesh.indices[Index_Offset];
+					glm::vec3 Normal0{
+						LoadResult.attributes.normals[Index.normal_index * 3 + 0],
+						LoadResult.attributes.normals[Index.normal_index * 3 + 1],
+						LoadResult.attributes.normals[Index.normal_index * 3 + 2]
+					};
+					Index = LoadShape.mesh.indices[Index_Offset + 1];
+					glm::vec3 Normal1{
+						LoadResult.attributes.normals[Index.normal_index * 3 + 0],
+						LoadResult.attributes.normals[Index.normal_index * 3 + 1],
+						LoadResult.attributes.normals[Index.normal_index * 3 + 2]
+					};
+					Index = LoadShape.mesh.indices[Index_Offset + 2];
+					glm::vec3 Normal2{
+						LoadResult.attributes.normals[Index.normal_index * 3 + 0],
+						LoadResult.attributes.normals[Index.normal_index * 3 + 1],
+						LoadResult.attributes.normals[Index.normal_index * 3 + 2]
+					};
+					Triangles.push_back(Triangle{
+						Pos0, Pos1, Pos2, Normal0, Normal1, Normal2
+						});
+				}
+				else {
+					Triangles.push_back(Triangle{
+						Pos0, Pos1, Pos2
+						});
+				}
+			}
+			Index_Offset += num_face_vectex;
 		}
 	}
 	return true;

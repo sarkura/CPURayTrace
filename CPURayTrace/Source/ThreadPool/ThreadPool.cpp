@@ -83,22 +83,23 @@ void ThreadPool::Wait() const
 void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::function<void(size_t, size_t)>& Lambda)
 {
 	//Guard GuardLock(TaskLock);
-	for (size_t i = 0; i < InWidth; i++)
+
+	if (DefaultParallelForDebugInfo.bOpenThreadDebug)
 	{
-		for (size_t j = 0; j < InHeight; j++)
+		Task* NewTask = new ParallelForTask(DefaultParallelForDebugInfo.X, DefaultParallelForDebugInfo.Y, Lambda);
+		if (NewTask)
 		{
-			if (DefaultParallelForDebugInfo.bOpenThreadDebug)
-			{
-				if (i == DefaultParallelForDebugInfo.X && j == DefaultParallelForDebugInfo.Y)
-				{
-					Task* NewTask = new ParallelForTask(i, j, Lambda);
-					if (NewTask)
-					{
-						NewTask->Run();
-					}
-				}
-			}
-			else
+			NewTask->Run();
+		}
+	}
+	else
+	{
+		//float ChunkWidth = static_cast<float>(InWidth) / std::sqrt(16.f) / std::sqrt(Threads.size());
+		//float ChunkHeight = static_cast<float>(InHeight) / std::sqrt(16.f) / std::sqrt(Threads.size());
+
+		for (size_t i = 0; i < InWidth; i++)
+		{
+			for (size_t j = 0; j < InHeight; j++)
 			{
 				Task* NewTask = new ParallelForTask(i, j, Lambda);
 				if (NewTask)
