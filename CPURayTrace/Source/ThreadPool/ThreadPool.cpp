@@ -13,6 +13,7 @@ void ThreadPool::WorkerThread(ThreadPool* ThreadPoolMaster)
 		if (task != nullptr) 
 		{
 			task->Run();
+			delete task;
 			ThreadPoolMaster->TaskPendingCount -= 1;
 		}
 		else 
@@ -82,13 +83,13 @@ void ThreadPool::Wait() const
 	}
 }
 
-void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::function<void(size_t, size_t)>& Lambda)
+void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::function<void(size_t, size_t)>& Lambda, bool bComplex)
 {
 	//Guard GuardLock(TaskLock);
 	PROFILE(ThreadPool_ParallelFor);
 	if (DefaultParallelForDebugInfo.bOpenThreadDebug)
 	{
-		Task* NewTask = new ParallelForTask(DefaultParallelForDebugInfo.X, DefaultParallelForDebugInfo.Y, Lambda);
+		Task* NewTask = new ParallelForTask(DefaultParallelForDebugInfo.X, DefaultParallelForDebugInfo.Y, DefaultParallelForDebugInfo.ChunkWidth, DefaultParallelForDebugInfo.ChunkWidth, Lambda);
 		if (NewTask)
 		{
 			NewTask->Run();
@@ -96,14 +97,31 @@ void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::functio
 	}
 	else
 	{
-		//float ChunkWidth = static_cast<float>(InWidth) / std::sqrt(16.f) / std::sqrt(Threads.size());
-		//float ChunkHeight = static_cast<float>(InHeight) / std::sqrt(16.f) / std::sqrt(Threads.size());
-
-		for (size_t i = 0; i < InWidth; i++)
+		float ChunkWidthFloat = static_cast<float>(InWidth) / std::sqrt(static_cast<float>(Threads.size()));
+		float ChunkHeightFloat = static_cast<float>(InHeight) / std::sqrt(static_cast<float>(Threads.size()));
+		if (bComplex)
 		{
-			for (size_t j = 0; j < InHeight; j++)
+			ChunkWidthFloat /= std::sqrt(16.f);
+			ChunkHeightFloat /= std::sqrt(16.f);
+		}
+
+		size_t ChunkWidth = (size_t)std::ceil(ChunkWidthFloat);
+		size_t ChunkHeight = (size_t)std::ceil(ChunkHeightFloat);
+
+		for (size_t i = 0; i < InWidth; i += ChunkWidth)
+		{
+			for (size_t j = 0; j < InHeight; j += ChunkHeight)
 			{
-				Task* NewTask = new ParallelForTask(i, j, Lambda);
+				if (i + ChunkWidth > InWidth)
+				{
+					ChunkWidth = InWidth - i;
+				}
+				if (j + ChunkHeight > InHeight)
+				{
+					ChunkHeight = InHeight - j;
+				}
+
+				Task* NewTask = new ParallelForTask(i, j, ChunkWidth, ChunkHeight, Lambda);
 				if (NewTask)
 				{
 					AddTask(NewTask);
@@ -113,13 +131,19 @@ void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::functio
 	}
 }
 
-ParallelForTask::ParallelForTask(size_t InWidth, size_t InHeight, const std::function<void(size_t, size_t)>& FunctionCall) 
-	: Width(InWidth), Height(InHeight), Lambda(FunctionCall)
+ParallelForTask::ParallelForTask(size_t InWidth, size_t InHeight, size_t InBlockWidth, size_t InBlockHeight, const std::function<void(size_t, size_t)>& FunctionCall)
+	: Width(InWidth), Height(InHeight), BlockWidth(InBlockWidth), BlockHeight(InBlockHeight), Lambda(FunctionCall)
 {
 
 }
 
 void ParallelForTask::Run()
 {
-	Lambda(Width, Height);
+	for (size_t BlockX = 0; BlockX < BlockWidth; BlockX++)
+	{
+		for (size_t BlockY = 0; BlockY < BlockHeight; BlockY++)
+		{
+			Lambda(Width + BlockX, Height + BlockY);
+		}
+	}
 }
