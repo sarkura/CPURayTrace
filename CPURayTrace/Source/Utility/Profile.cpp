@@ -10,6 +10,6 @@ Profile::~Profile()
 {
 	auto Duration = std::chrono::high_resolution_clock::now() - StartTime;
 	auto MilliSecond = std::chrono::duration_cast<std::chrono::milliseconds>(Duration).count();
-	std::cout << "Function: " << Name << "  Duration: " << MilliSecond << std::endl;
+	std::cout << "Function: " << Name << "  Duration: " << MilliSecond  << "ms" << std::endl;
 }
 

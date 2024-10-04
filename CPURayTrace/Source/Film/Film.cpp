@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "Profile.h"
+
 Film::Film(size_t InWidth, size_t InHeight)
 {
 	Width = std::min(MaxSize, InWidth);
@@ -13,6 +15,7 @@ Film::Film(size_t InWidth, size_t InHeight)
 
 void Film::Save(const std::filesystem::path& FileName)
 {
+	PROFILE(Film_Save);
 	//PPM
 	std::ofstream File(FileName,std::ios::binary);
 	File << "P6\n" << Width << ' ' << Height << "\n255\n";

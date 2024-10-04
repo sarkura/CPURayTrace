@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include "rapidobj.hpp"
+#include "Profile.h"
 
 Model::Model(const std::vector<Triangle> InTriangles) :
 	Triangles(InTriangles)
@@ -41,7 +42,7 @@ std::optional<HitInfo> Model::Intersect(const Ray& InRay, float T_Min /*= 1e-5*/
 
 bool Model::LoadFile(const std::filesystem::path& FilePath)
 {
-
+	PROFILE(Model_LoadFile);
 	auto LoadResult = rapidobj::ParseFile(FilePath, rapidobj::MaterialLibrary::Ignore());
 
 	for (auto& LoadShape : LoadResult.shapes)

@@ -1,5 +1,7 @@
 #include "ThreadPool.h"
 
+#include "Profile.h"
+
 //ThreadPool Thread_Pool = { {true, 10, 20}, 0 };
 ThreadPool Thread_Pool;
 
@@ -83,7 +85,7 @@ void ThreadPool::Wait() const
 void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::function<void(size_t, size_t)>& Lambda)
 {
 	//Guard GuardLock(TaskLock);
-
+	PROFILE(ThreadPool_ParallelFor);
 	if (DefaultParallelForDebugInfo.bOpenThreadDebug)
 	{
 		Task* NewTask = new ParallelForTask(DefaultParallelForDebugInfo.X, DefaultParallelForDebugInfo.Y, Lambda);

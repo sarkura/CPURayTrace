@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "Profile.h"
+
 BaseRenderer::BaseRenderer(Camera& InRenderCamera, const Scene& InRenderScene) :
 	RenderCamera(InRenderCamera), RenderScene(InRenderScene), RandHandle(25541, 0.0f, 1.0f)
 {
@@ -13,9 +15,11 @@ BaseRenderer::BaseRenderer(Camera& InRenderCamera, const Scene& InRenderScene) :
 
 void BaseRenderer::Render(size_t InSampleCount, const std::filesystem::path& SavePath)
 {
+	PROFILE(BaseRenderer_Render);
+
 	size_t CurrentSampleCount = 0, IncreaseCount = 1;
 	Film& RenderFilm = RenderCamera.GetFilm();
-	Progress RenderProgress(InSampleCount * RenderFilm.GetWidth() * RenderFilm.GetHeight());
+	Progress RenderProgress(InSampleCount * RenderFilm.GetWidth() * RenderFilm.GetHeight(), 20);
 	while (CurrentSampleCount < InSampleCount)
 	{
 		Thread_Pool.ParallelFor(RenderFilm.GetWidth(), RenderFilm.GetHeight(), [&RenderFilm, IncreaseCount, this, &RenderProgress](size_t Wight, size_t Height)
