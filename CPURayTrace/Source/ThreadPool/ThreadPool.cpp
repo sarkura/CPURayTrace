@@ -1,14 +1,18 @@
 #include "ThreadPool.h"
-
 #include "Profile.h"
 
-//ThreadPool Thread_Pool = { {true, 10, 20}, 0 };
-ThreadPool Thread_Pool;
+
+//ThreadPool Thread_Pool = { {true, 395, 252}, 0 };
+ThreadPool Thread_Pool = { {false, 0, 0}, 0 };
 
 void ThreadPool::WorkerThread(ThreadPool* ThreadPoolMaster) 
 {
 	while (ThreadPoolMaster->bThreadPoolStart)
 	{
+		if (ThreadPoolMaster->Tasks.empty()) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(2));
+			continue;
+		}
 		Task* task = ThreadPoolMaster->GetTask();
 		if (task != nullptr) 
 		{
@@ -85,8 +89,9 @@ void ThreadPool::Wait() const
 
 void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::function<void(size_t, size_t)>& Lambda, bool bComplex)
 {
-	//Guard GuardLock(TaskLock);
-	PROFILE(ThreadPool_ParallelFor);
+	
+	PROFILE("ParallelFor");
+	Guard GuardLock(TaskLock);
 	if (DefaultParallelForDebugInfo.bOpenThreadDebug)
 	{
 		Task* NewTask = new ParallelForTask(DefaultParallelForDebugInfo.X, DefaultParallelForDebugInfo.Y, DefaultParallelForDebugInfo.ChunkWidth, DefaultParallelForDebugInfo.ChunkWidth, Lambda);
@@ -124,7 +129,8 @@ void ThreadPool::ParallelFor(size_t InWidth, size_t InHeight, const std::functio
 				Task* NewTask = new ParallelForTask(i, j, ChunkWidth, ChunkHeight, Lambda);
 				if (NewTask)
 				{
-					AddTask(NewTask);
+					TaskPendingCount += 1;
+					Tasks.push(NewTask);	
 				}
 			}
 		}
