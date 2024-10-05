@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <fstream>
-
 #include "Profile.h"
+
 
 Film::Film(size_t InWidth, size_t InHeight)
 {
@@ -16,7 +16,7 @@ Film::Film(size_t InWidth, size_t InHeight)
 
 void Film::Save(const std::filesystem::path& FileName)
 {
-	PROFILE(Film_Save);
+	PROFILE("Filmsave");
 	size_t& CaptureWidth = Width;
 	size_t& CaptureHeight = Height;
 

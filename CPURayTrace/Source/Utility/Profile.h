@@ -3,7 +3,7 @@
 #include <chrono>
 #include <iostream>
 
-#define PROFILE(Name) Profile Profile##Name(#Name);
+#define PROFILE(Name) Profile __Profile(Name);
 
 class Profile
 {

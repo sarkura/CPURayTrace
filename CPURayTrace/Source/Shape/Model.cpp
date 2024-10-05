@@ -5,46 +5,39 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
 #include "rapidobj.hpp"
 #include "Profile.h"
 
-Model::Model(const std::vector<Triangle> InTriangles) :
-	Triangles(InTriangles)
+Model::Model(const std::vector<Triangle>& InTriangles) 
+	//: Triangles(InTriangles)
 {
-
+	std::vector<Triangle> Triangles = InTriangles;
+	ModelBVHTree.BuildTree(std::move(Triangles));
+	//BuildBounds();
 }
 
 Model::Model(const std::filesystem::path& FilePath)
 {
-	if (!LoadFile(FilePath))
+	std::vector<Triangle> Triangles;
+	if (LoadFile(FilePath, Triangles))
 	{
-		std::cout << "Load File " << FilePath << " Failed!" << std::endl;
+		ModelBVHTree.BuildTree(std::move(Triangles));
 	}
+	else
+		std::cout << "Load File " << FilePath << " Failed!" << std::endl;
 }
 
 std::optional<HitInfo> Model::Intersect(const Ray& InRay, float T_Min /*= 1e-5*/, float T_Max /*= std::numeric_limits<float>::infinity()*/) const
 {
-	std::optional<HitInfo> ResultInfo;
-
-	float MaxStep = T_Max;
-	for (const Triangle& CurTriangle : Triangles)
-	{
-		std::optional<HitInfo> CurHitInfo = CurTriangle.Intersect(InRay, T_Min, MaxStep);
-		if (CurHitInfo.has_value())
-		{
-			MaxStep = CurHitInfo->TStep;
-			ResultInfo = CurHitInfo;
-		}
-	}
-
+	std::optional<HitInfo> ResultInfo = ModelBVHTree.Intersect(InRay, T_Min, T_Max);
 	return ResultInfo;
 }
 
-bool Model::LoadFile(const std::filesystem::path& FilePath)
+bool Model::LoadFile(const std::filesystem::path& FilePath, std::vector<Triangle>& Triangles)
 {
-	PROFILE(Model_LoadFile);
+	PROFILE("Load model " + FilePath.string())
 	auto LoadResult = rapidobj::ParseFile(FilePath, rapidobj::MaterialLibrary::Ignore());
-
 	for (auto& LoadShape : LoadResult.shapes)
 	{
 		size_t Index_Offset = 0;

@@ -15,13 +15,15 @@ BaseRenderer::BaseRenderer(Camera& InRenderCamera, const Scene& InRenderScene) :
 
 void BaseRenderer::Render(size_t InSampleCount, const std::filesystem::path& SavePath)
 {
-	PROFILE(BaseRenderer_Render);
+	PROFILE("Render " + std::to_string(InSampleCount) + "InSampleCount " + SavePath.string());
 
 	size_t CurrentSampleCount = 0, IncreaseCount = 1;
 	Film& RenderFilm = RenderCamera.GetFilm();
+	RenderFilm.ClearFilm();
 	Progress RenderProgress(InSampleCount * RenderFilm.GetWidth() * RenderFilm.GetHeight(), 20);
 	while (CurrentSampleCount < InSampleCount)
 	{
+		
 		Thread_Pool.ParallelFor(RenderFilm.GetWidth(), RenderFilm.GetHeight(), [&RenderFilm, IncreaseCount, this, &RenderProgress](size_t Wight, size_t Height)
 		{
 			for (int Index = 0; Index < IncreaseCount; Index++)
@@ -36,5 +38,5 @@ void BaseRenderer::Render(size_t InSampleCount, const std::filesystem::path& Sav
 		RenderFilm.Save(SavePath);
 
 		std::cout << "CurrentSample : " << CurrentSampleCount << " Save Name: " << SavePath << " ! " << std::endl;
-	}
+	}	
 }

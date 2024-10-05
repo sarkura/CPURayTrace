@@ -61,20 +61,19 @@ int main()
     
     Scene TestScene;
 
-    TestScene.AddShape(&TestModel, &TestModelMaterial, { 0.f, 0.f, 0.f }, { 1.f, 3.f, 2.f });
-    TestScene.AddShape(&TestSphere, &TestSphereMaterialA, { 0.f, 0.f, 2.5f });
-    TestScene.AddShape(&TestSphere, &TestSphereMaterialB, { 0.f, 0.f, -2.5f });
-    TestScene.AddShape(&TestSphere, &TestSphereMaterialC, { 3.f, 0.5f, -2.f });
-    TestScene.AddShape(&TestPlane, &TestPlaneMaterial, { 0, -0.5, 0 });
+    TestScene.AddShape(&TestModel, &TestModelMaterial, { 0.f, 0.f, 0.f }, { 3.f, 3.f, 3.f });
+    //TestScene.AddShape(&TestSphere, &TestSphereMaterialA, { 0.f, 0.f, 2.5f });
+    //TestScene.AddShape(&TestSphere, &TestSphereMaterialB, { 0.f, 0.f, -2.5f });
+    //TestScene.AddShape(&TestSphere, &TestSphereMaterialC, { 3.f, 0.5f, -2.f });
+    //TestScene.AddShape(&TestPlane, &TestPlaneMaterial, { 0, -0.5, 0 });
 
 	NormalRenderer TestNormalRenderer(TestCamera, TestScene);
 	TestNormalRenderer.Render(1, "Output/Normal.ppm");
 
-    Film_Test.ClearFilm();
+    
 
-    SimpleRayTraceRenderer TestSimpleRayTraceRenderer(TestCamera, TestScene);
-    TestSimpleRayTraceRenderer.Render(2, "Output/SimpleRayTrace.ppm");
-    Film_Test.ClearFilm();
+    /*SimpleRayTraceRenderer TestSimpleRayTraceRenderer(TestCamera, TestScene);
+    TestSimpleRayTraceRenderer.Render(1, "Output/SimpleRayTrace.ppm");*/
 
     return 0;
 }
