@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "ThirdParty/glm/glm.hpp"
+#include "glm/glm.hpp"
 
 #include "Film.h"
 #include "RGB.h"
