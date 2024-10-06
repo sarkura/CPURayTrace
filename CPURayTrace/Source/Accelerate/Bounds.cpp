@@ -33,43 +33,17 @@ void Bounds::Expand(const Bounds& InBounds)
 // t = (Y - O.y) / (D.y)
 // solve function
 
-// ????
 bool Bounds::HasIntersection(const Ray& InRay, float T_Min, float T_Max) const
 {
-	/*glm::vec3 t1 = (BoundsMin - InRay.Origin) / InRay.Direction;
-	glm::vec3 t2 = (BoundsMax - InRay.Origin) / InRay.Direction;
-	glm::vec3 tmin = glm::min(t1, t2);
-	glm::vec3 tmax = glm::max(t1, t2);
+	glm::vec3 T_BoundsMin = (BoundsMin - InRay.Origin) / InRay.Direction;
+	glm::vec3 T_BoundsMax = (BoundsMax - InRay.Origin) / InRay.Direction;
+	glm::vec3 NewT_BoundsMin = glm::min(T_BoundsMin, T_BoundsMax);
+	glm::vec3 NewT_BoundsMax = glm::max(T_BoundsMin, T_BoundsMax);
 
-	float near = glm::max(tmin.x, glm::max(tmin.y, tmin.z));
-	float far = glm::min(tmax.x, glm::min(tmax.y, tmax.z));
+	float Near = glm::max(NewT_BoundsMin.x, glm::max(NewT_BoundsMin.y, NewT_BoundsMin.z));
+	float Far = glm::min(NewT_BoundsMax.x, glm::min(NewT_BoundsMax.y, NewT_BoundsMax.z));
 
-	if (near <= T_Min && far >= T_Max) {
-		return false;
-	}*/
-
-	float TEntry = T_Min;
-	float TExit = T_Max;
-
-	for (int i = 0; i < 3; ++i) 
-	{
-		if (InRay.Direction.x != 0) 
-		{
-			float tMin = (BoundsMin.x - InRay.Origin.x) / InRay.Direction.x;
-			float tMax = (BoundsMax.x - InRay.Origin.x) / InRay.Direction.x;
-
-			if (tMin > tMax) std::swap(tMin, tMax);
-
-			TEntry = std::max(TEntry, tMin);
-			TExit = std::min(TExit, tMax);
-		}
-		else if (InRay.Origin.x < BoundsMin.x || InRay.Origin.x > BoundsMax.x)
-		{
-			return false;
-		}
-	}
-
-	return TEntry <= TExit;
+	return glm::max(Near, T_Min) <= glm::min(Far, T_Max);
 }
 
 void Bounds::InvaildBounds()

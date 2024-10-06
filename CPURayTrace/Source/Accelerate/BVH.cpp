@@ -15,6 +15,11 @@ void BVHTreeNode::UpdateBounds()
 
 void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
 {
+	if (BoundsTraiangles.size() == 0)
+	{
+		return;
+	}
+
 	BVHTreeNode* RootNode = new BVHTreeNode();
 	if (RootNode)
 	{
@@ -41,7 +46,7 @@ void BVHTree::RecurseSplit(BVHTreeNode* SplitNode)
 		std::vector<Triangle> LeftNodeTriangles, RightNodeTriangles;
 		for (const auto& SplitNodeTriangle : SplitNode->BoundsTraiangles)
 		{
-			
+
 			if ((SplitNodeTriangle.VertexPos0[MaxAxis] + SplitNodeTriangle.VertexPos1[MaxAxis] + SplitNodeTriangle.VertexPos2[MaxAxis]) / 3.0f < MidLocation)
 			{
 				LeftNodeTriangles.push_back(SplitNodeTriangle);
@@ -93,16 +98,18 @@ std::optional<HitInfo> BVHTree::Intersect(const Ray& InRay, float T_Min, float T
 			CurrentNodeIndex = *(--Ptr);
 			continue;
 		}
-		if (Node.BoundsTraiangles.empty())
+		if (Node.TriangleCount == 0)
 		{
 			CurrentNodeIndex++;
 			*(Ptr++) = Node.RightchildIndex;
 		}
 		else
 		{
-			for (const auto& BoundsTraiangle : Node.BoundsTraiangles)
+			auto TriangleIterator = OrderedTraiangles.begin() + Node.TriangleIndex;
+			for (size_t i = 0; i < Node.TriangleCount; i++)
 			{
-				auto TraiangleHitInfo = BoundsTraiangle.Intersect(InRay, T_Min, T_Max);
+				auto TraiangleHitInfo = TriangleIterator->Intersect(InRay, T_Min, T_Max);
+				++TriangleIterator;
 				if (TraiangleHitInfo.has_value())
 				{
 					T_Max = TraiangleHitInfo->TStep;
@@ -121,17 +128,21 @@ std::optional<HitInfo> BVHTree::Intersect(const Ray& InRay, float T_Min, float T
 
 size_t BVHTree::RecursiveFlatten(BVHTreeNode* FlattenNode)
 {
-	BVHNode NewBVHNode{
-		FlattenNode->TreeBounds,
-		std::move(FlattenNode->BoundsTraiangles),
-		0
-	};
+	BVHNode NewBVHNode{ FlattenNode->TreeBounds,0,0,FlattenNode->BoundsTraiangles.size() };
 	size_t Index = Nodes.size();
 	Nodes.push_back(NewBVHNode);
-	if (NewBVHNode.BoundsTraiangles.empty())
+	if (NewBVHNode.TriangleCount == 0)
 	{
 		RecursiveFlatten(FlattenNode->LeftChildNode);
 		Nodes[Index].RightchildIndex = RecursiveFlatten(FlattenNode->RightChildNode);
+	}
+	else
+	{
+		Nodes[Index].TriangleIndex = OrderedTraiangles.size();
+		for (const Triangle& NodeTriangle : FlattenNode->BoundsTraiangles)
+		{
+			OrderedTraiangles.push_back(NodeTriangle);
+		}
 	}
 	return Index;
 }

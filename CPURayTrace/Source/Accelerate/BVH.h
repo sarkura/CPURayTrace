@@ -16,8 +16,9 @@ public:
 struct BVHNode
 {
 	Bounds TreeBounds{};
-	std::vector<Triangle> BoundsTraiangles;
 	size_t RightchildIndex;
+	size_t TriangleIndex;
+	size_t TriangleCount;
 };
 
 class BVHTree : public Shape
@@ -32,4 +33,5 @@ private:
 	size_t RecursiveFlatten(BVHTreeNode* FlattenNode);
 private:
 	std::vector<BVHNode> Nodes;
+	std::vector<Triangle> OrderedTraiangles;
 };
