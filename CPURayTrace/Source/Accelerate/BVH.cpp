@@ -2,7 +2,9 @@
 #include "DebugMacro.hpp"
 
 #include <array>
+#include <vector>
 #include <iostream>
+#include "Profile.h"
 
 void BVHTreeNode::UpdateBounds()
 {
@@ -18,12 +20,13 @@ void BVHTreeNode::UpdateBounds()
 
 void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
 {
+	PROFILE("BuildTree")
 	if (BoundsTraiangles.size() == 0)
 	{
 		return;
 	}
 
-	BVHTreeNode* RootNode = new BVHTreeNode();
+	RootNode = TreeNodeAllocator.Allocator();
 	if (RootNode)
 	{
 		RootNode->BoundsTraiangles = std::move(BoundsTraiangles);
@@ -54,72 +57,106 @@ void BVHTree::RecurseSplit(BVHTreeNode* SplitNode, BVHState& InBVHState)
 		{
 			InBVHState.AddLeafNode(SplitNode);
 			return;
-		}
+		}	
 
 		glm::vec3 Diagonal = SplitNode->TreeBounds.GetBoundsDiagonal();
 		float MinCost = std::numeric_limits<float>::infinity();
-		Bounds MinLeftBounds, MinRightBounds;
+		size_t MinSplitIndex = 0;
+		Bounds LeftChildBound, RightChildBound;
+		size_t LeftTriangleCount = 0, RightTriangleCount = 0;
+		constexpr int SplitBucketCount = 12;
+		std::vector<size_t> BucketTriangleIndex[3][SplitBucketCount] = {};
 		
-		int MaxAxis = Diagonal.x > Diagonal.y ? (Diagonal.x > Diagonal.z ? 0 : 2) : (Diagonal.y > Diagonal.z ? 1 : 2);
-		SplitNode->SplitAxis = MaxAxis;
-		std::vector<Triangle> LeftNodeTriangles, RightNodeTriangles;
-
-		//int SplitBlockCount = static_cast<int>(glm::ceil(Diagonal[MaxAxis] / MinBuildSize)) + 1;
-		constexpr int SplitBlockCount = 12;
-		for (int i = 0; i < SplitBlockCount; i++)
+		for (int Axis = 0; Axis < 3; Axis++)
 		{
-			float MidLocation = SplitNode->TreeBounds.BoundsMin[MaxAxis] + Diagonal[MaxAxis] * (i + 1.0f) / static_cast<float>(SplitBlockCount);
-			std::vector<Triangle> TempLeftNodeTriangles, TempRightNodeTriangles;
-			for (const auto& SplitNodeTriangle : SplitNode->BoundsTraiangles)
+			Bounds BucketBounds[SplitBucketCount] = {};
+			size_t BucketTriangleCount[SplitBucketCount] = {0};
+			size_t TriangleIndex = 0;
+			for (const Triangle& BoundsTraiangle : SplitNode->BoundsTraiangles)
 			{
-				if ((SplitNodeTriangle.VertexPos0[MaxAxis] + SplitNodeTriangle.VertexPos1[MaxAxis] + SplitNodeTriangle.VertexPos2[MaxAxis]) / 3.0f < MidLocation)
-				{
-					MinLeftBounds.Expand(SplitNodeTriangle.VertexPos0);
-					MinLeftBounds.Expand(SplitNodeTriangle.VertexPos1);
-					MinLeftBounds.Expand(SplitNodeTriangle.VertexPos2);
-					TempLeftNodeTriangles.push_back(SplitNodeTriangle);
-				}
-				else
-				{
-					MinRightBounds.Expand(SplitNodeTriangle.VertexPos0);
-					MinRightBounds.Expand(SplitNodeTriangle.VertexPos1);
-					MinRightBounds.Expand(SplitNodeTriangle.VertexPos2);
-					TempRightNodeTriangles.push_back(SplitNodeTriangle);
-				}
+				float BarycentricCoordinates = (BoundsTraiangle.VertexPos0[Axis] + BoundsTraiangle.VertexPos1[Axis] + BoundsTraiangle.VertexPos2[Axis]) / 3.0f;
+				size_t BucketId = glm::clamp<size_t>(
+					static_cast<size_t>(glm::floor((BarycentricCoordinates - SplitNode->TreeBounds.BoundsMin[Axis]) * SplitBucketCount / Diagonal[Axis])),
+					0, SplitBucketCount - 1);
+				BucketBounds[BucketId].Expand(BoundsTraiangle.VertexPos0);
+				BucketBounds[BucketId].Expand(BoundsTraiangle.VertexPos1);
+				BucketBounds[BucketId].Expand(BoundsTraiangle.VertexPos2);
+				BucketTriangleCount[BucketId] += 1;
+				BucketTriangleIndex[Axis][BucketId].push_back(TriangleIndex);
+				TriangleIndex += 1;
 			}
-			if (TempLeftNodeTriangles.empty() || TempRightNodeTriangles.empty())
+
+			Bounds LeftBounds = BucketBounds[0];
+			size_t LeftBoundsTriangleCount = BucketTriangleCount[0];
+			for (size_t i = 1; i <= SplitBucketCount - 1; i++)
 			{
-				continue;
-			}
-			float CurCost = MinLeftBounds.Area() * TempLeftNodeTriangles.size() + MinRightBounds.Area() * TempRightNodeTriangles.size();
-			if (CurCost < MinCost)
-			{
-				MinCost = CurCost;
-				LeftNodeTriangles = std::move(TempLeftNodeTriangles);
-				RightNodeTriangles = std::move(TempRightNodeTriangles);
+				Bounds RightBounds;
+				size_t RightBoundsTriangleCount = 0;
+				for (size_t j = SplitBucketCount - 1; j >=i; j--)
+				{
+					RightBounds.Expand(BucketBounds[j]);
+					RightBoundsTriangleCount += BucketTriangleCount[j];
+				}
+				if (RightBoundsTriangleCount == 0)
+				{
+					break;
+				}
+				if (LeftBoundsTriangleCount != 0)
+				{
+					float Cost = LeftBounds.Area() * LeftBoundsTriangleCount + RightBounds.Area() * RightBoundsTriangleCount;
+					if (Cost < MinCost)
+					{
+						MinCost = Cost;
+						SplitNode->SplitAxis = Axis;
+						MinSplitIndex = i;
+						LeftChildBound = LeftBounds;
+						RightChildBound = RightBounds;
+						LeftTriangleCount = LeftBoundsTriangleCount;
+						RightTriangleCount = RightBoundsTriangleCount;
+					}
+				}
+				LeftBounds.Expand(BucketBounds[i]);
+				LeftBoundsTriangleCount += BucketTriangleCount[i];
 			}
 		}
-
 		
-		if (LeftNodeTriangles.empty() || RightNodeTriangles.empty())
+		if (MinSplitIndex == 0)
 		{
 			InBVHState.AddLeafNode(SplitNode);
 			return;
 		}
 
-		SplitNode->BoundsTraiangles.clear();
+		//SplitNode->BoundsTraiangles.clear();
 
-		BVHTreeNode* LeftChildNode = new BVHTreeNode();
-		BVHTreeNode* RightChildNode = new BVHTreeNode();
+		BVHTreeNode* LeftChildNode = TreeNodeAllocator.Allocator();
+		BVHTreeNode* RightChildNode = TreeNodeAllocator.Allocator();
 
 		SplitNode->LeftChildNode = LeftChildNode;
 		SplitNode->RightChildNode = RightChildNode;
 
-		LeftChildNode->BoundsTraiangles = std::move(LeftNodeTriangles);
-		RightChildNode->BoundsTraiangles = std::move(RightNodeTriangles);
+		LeftChildNode->BoundsTraiangles.reserve(LeftTriangleCount);
+		RightChildNode->BoundsTraiangles.reserve(RightTriangleCount);
 
-		LeftChildNode->UpdateBounds();
-		RightChildNode->UpdateBounds();
+		for (size_t i = 0; i < MinSplitIndex; i++)
+		{
+			for (size_t Index : BucketTriangleIndex[SplitNode->SplitAxis][i])
+			{
+				LeftChildNode->BoundsTraiangles.push_back(SplitNode->BoundsTraiangles[Index]);
+			}
+		}
+		for (size_t i = MinSplitIndex; i < SplitBucketCount; i++)
+		{
+			for (size_t Index : BucketTriangleIndex[SplitNode->SplitAxis][i])
+			{
+				RightChildNode->BoundsTraiangles.push_back(SplitNode->BoundsTraiangles[Index]);
+			}
+		}
+
+		SplitNode->BoundsTraiangles.clear();
+		SplitNode->BoundsTraiangles.shrink_to_fit();
+
+		LeftChildNode->TreeBounds = LeftChildBound;
+		RightChildNode->TreeBounds = RightChildBound;
 
 		LeftChildNode->Depth = SplitNode->Depth + 1;
 		RightChildNode->Depth = SplitNode->Depth + 1;
@@ -225,4 +262,30 @@ int BVHTree::RecursiveFlatten(BVHTreeNode* FlattenNode)
 		}
 	}
 	return Index;
+}
+
+BVHTreeNodeAllocator::BVHTreeNodeAllocator()
+	:BlockSize(4096)
+{
+
+}
+
+BVHTreeNodeAllocator::~BVHTreeNodeAllocator()
+{
+	for (auto* Nodes : BVHTreeNodeList)
+	{
+		delete[] Nodes;
+	}
+	BVHTreeNodeList.clear();
+	BVHTreeNodeList.shrink_to_fit();
+}
+
+BVHTreeNode* BVHTreeNodeAllocator::Allocator()
+{
+	if (BlockSize == 4096)
+	{
+		BVHTreeNodeList.push_back(new BVHTreeNode[4096]);
+		BlockSize = 0;
+	}
+	return &(BVHTreeNodeList.back())[BlockSize++];
 }

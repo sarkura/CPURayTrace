@@ -9,8 +9,9 @@ void ThreadPool::WorkerThread(ThreadPool* ThreadPoolMaster)
 {
 	while (ThreadPoolMaster->bThreadPoolStart)
 	{
-		if (ThreadPoolMaster->Tasks.empty()) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(2));
+		if (ThreadPoolMaster->Tasks.empty()) 
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 			continue;
 		}
 		Task* task = ThreadPoolMaster->GetTask();

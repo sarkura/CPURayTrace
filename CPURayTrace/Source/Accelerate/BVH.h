@@ -42,6 +42,18 @@ struct BVHState
 	}
 };
 
+class BVHTreeNodeAllocator
+{
+public:
+	BVHTreeNodeAllocator();
+	~BVHTreeNodeAllocator();
+
+	BVHTreeNode* Allocator();
+private:
+	size_t BlockSize;
+	std::vector<BVHTreeNode*> BVHTreeNodeList;
+};
+
 
 class BVHTree : public Shape
 {
@@ -54,7 +66,8 @@ private:
 	void RecurseSplit(BVHTreeNode* SplitNode, BVHState& InBVHState);
 	int RecursiveFlatten(BVHTreeNode* FlattenNode);
 private:
-	const float MinBuildSize = 64.0f;
 	std::vector<BVHNode> Nodes;
 	std::vector<Triangle> OrderedTraiangles;
+	BVHTreeNode* RootNode = nullptr;
+	BVHTreeNodeAllocator TreeNodeAllocator{};
 };

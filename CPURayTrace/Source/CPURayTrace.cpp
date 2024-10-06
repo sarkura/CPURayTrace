@@ -30,7 +30,7 @@ int main()
 
 	Sphere TestSphere({ 0.f, 0.f, 0.f },1.0f );
 
-    Model TestModel("Asset/Models/dragon_87k.obj");
+    Model TestModel("Asset/Models/dragon_871k.obj");
 
     Plane TestPlane({ 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 
