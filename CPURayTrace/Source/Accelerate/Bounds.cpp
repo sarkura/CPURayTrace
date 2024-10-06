@@ -46,6 +46,19 @@ bool Bounds::HasIntersection(const Ray& InRay, float T_Min, float T_Max) const
 	return glm::max(Near, T_Min) <= glm::min(Far, T_Max);
 }
 
+bool Bounds::HasIntersection(const Ray& InRay, const glm::vec3& InverseRayDirection, float T_Min, float T_Max) const
+{
+	glm::vec3 T_BoundsMin = (BoundsMin - InRay.Origin) * InverseRayDirection;
+	glm::vec3 T_BoundsMax = (BoundsMax - InRay.Origin) * InverseRayDirection;
+	glm::vec3 NewT_BoundsMin = glm::min(T_BoundsMin, T_BoundsMax);
+	glm::vec3 NewT_BoundsMax = glm::max(T_BoundsMin, T_BoundsMax);
+
+	float Near = glm::max(NewT_BoundsMin.x, glm::max(NewT_BoundsMin.y, NewT_BoundsMin.z));
+	float Far = glm::min(NewT_BoundsMax.x, glm::min(NewT_BoundsMax.y, NewT_BoundsMax.z));
+
+	return glm::max(Near, T_Min) <= glm::min(Far, T_Max);
+}
+
 void Bounds::InvaildBounds()
 {
 	BoundsMin = { std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity() , std::numeric_limits<float>::infinity() };
@@ -55,4 +68,10 @@ void Bounds::InvaildBounds()
 glm::vec3 Bounds::GetBoundsDiagonal() const
 {
 	return BoundsMax - BoundsMin;
+}
+
+float Bounds::Area() const
+{
+	auto Diagonal = GetBoundsDiagonal();
+	return (Diagonal.x * (Diagonal.y + Diagonal.z) + Diagonal.y * Diagonal.z) * 2.f;
 }
