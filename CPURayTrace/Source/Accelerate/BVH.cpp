@@ -44,6 +44,8 @@ void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
 		std::cout << "Mean Leaf Node Triangle Count: " << static_cast<float>(NewState.TotalTriangleCount) / static_cast<float>(NewState.LeafNodeCount) << std::endl;
 		std::cout << "Max Leaf Node Triangle Count: " << NewState.LeafNodeMaxTriangleCount << std::endl;
 
+		Nodes.reserve(NewState.TotalNodeCount);
+		OrderedTraiangles.reserve(NewState.TotalTriangleCount);
 		RecursiveFlatten(RootNode);
 	}
 }

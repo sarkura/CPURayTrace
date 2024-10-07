@@ -60,18 +60,18 @@ int main()
     
     Scene TestScene;
 
-    TestScene.AddShape(&TestModel, &TestModelMaterial, { 0.f, 0.f, 0.f }, { 3.f, 3.f, 3.f });
-    //TestScene.AddShape(&TestSphere, &TestSphereMaterialA, { 0.f, 0.f, 2.5f });
-    //TestScene.AddShape(&TestSphere, &TestSphereMaterialB, { 0.f, 0.f, -2.5f });
-    //TestScene.AddShape(&TestSphere, &TestSphereMaterialC, { 3.f, 0.5f, -2.f });
-    //TestScene.AddShape(&TestPlane, &TestPlaneMaterial, { 0, -0.5, 0 });
+    TestScene.AddShape(&TestModel, TestModelMaterial, { 0.f, 0.f, 0.f }, { 3.f, 3.f, 3.f });
+    TestScene.AddShape(&TestSphere, TestSphereMaterialA, { 0.f, 0.f, 2.5f });
+    TestScene.AddShape(&TestSphere, TestSphereMaterialB, { 0.f, 0.f, -2.5f });
+    TestScene.AddShape(&TestSphere, TestSphereMaterialC, { 3.f, 0.5f, -2.f });
+    TestScene.AddShape(&TestPlane, TestPlaneMaterial, { 0, -0.5, 0 });
 
     NormalRenderer* TestNormalRenderer = new NormalRenderer(TestCamera, TestScene);
 	TestNormalRenderer->Render(1, "Output/Normal.ppm");
     delete TestNormalRenderer;
 
     SimpleRayTraceRenderer* TestSimpleRayTraceRenderer = new SimpleRayTraceRenderer(TestCamera, TestScene);
-    TestSimpleRayTraceRenderer->Render(1, "Output/SimpleRayTrace.ppm");
+    TestSimpleRayTraceRenderer->Render(32, "Output/SimpleRayTrace.ppm");
     delete TestSimpleRayTraceRenderer;
 
     BoundsTestCountRenderer* TestBoundsTestCountRenderer = new BoundsTestCountRenderer(TestCamera, TestScene);
@@ -81,10 +81,6 @@ int main()
     TriangleTestCountRenderer* TestTriangleTestCountRenderer = new TriangleTestCountRenderer(TestCamera, TestScene);
     TestTriangleTestCountRenderer->Render(1, "Output/TriangleTestCount.ppm");
     delete TestTriangleTestCountRenderer;
-
-    BoundsDepthRenderer* TestBoundsDepthRenderer = new BoundsDepthRenderer(TestCamera, TestScene);
-    TestBoundsDepthRenderer->Render(1, "Output/BoundsDepth.ppm");
-    delete TestBoundsDepthRenderer;
 
     return 0;
 }

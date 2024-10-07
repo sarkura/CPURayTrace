@@ -42,6 +42,11 @@ bool Bounds::HasIntersection(const Ray& InRay, float T_Min, float T_Max) const
 
 	float Near = glm::max(NewT_BoundsMin.x, glm::max(NewT_BoundsMin.y, NewT_BoundsMin.z));
 	float Far = glm::min(NewT_BoundsMax.x, glm::min(NewT_BoundsMax.y, NewT_BoundsMax.z));
+	// did it correct?
+	if (Near <= T_Min && Far >= T_Max) 
+	{
+		return false;
+	}
 
 	return glm::max(Near, T_Min) <= glm::min(Far, T_Max);
 }
@@ -55,6 +60,11 @@ bool Bounds::HasIntersection(const Ray& InRay, const glm::vec3& InverseRayDirect
 
 	float Near = glm::max(NewT_BoundsMin.x, glm::max(NewT_BoundsMin.y, NewT_BoundsMin.z));
 	float Far = glm::min(NewT_BoundsMax.x, glm::min(NewT_BoundsMax.y, NewT_BoundsMax.z));
+	// did it correct?
+	if (Near <= T_Min && Far >= T_Max) 
+	{
+		return false;
+	}
 
 	return glm::max(Near, T_Min) <= glm::min(Far, T_Max);
 }
