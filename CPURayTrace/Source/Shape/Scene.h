@@ -1,13 +1,6 @@
 #pragma once
 #include "Shape.h"
-
-struct ShapeInstance
-{
-	const Shape* ShapePtr = nullptr;
-	Material InstanceMaterial;
-	glm::mat4 WorldFromObject = glm::mat4();
-	glm::mat4 ObjectFromWorld = glm::mat4();
-};
+#include "SceneBVH.h"
 
 class Scene : public Shape
 {
@@ -21,6 +14,8 @@ public:
 		const glm::vec3& InPosition = { 0.f,0.f,0.f },
 		const glm::vec3& InScale = {1.f, 1.f, 1.f},
 		const glm::vec3& InRotate = { 0.f,0.f,0.f });
+	void BuildTree() { SceneBVH.BuildTree(std::move(CollectShapeInstances)); }
 private:
 	std::vector<ShapeInstance> CollectShapeInstances;
+	SceneBVHTree SceneBVH{};
 };

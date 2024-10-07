@@ -17,7 +17,7 @@ void BVHTreeNode::UpdateBounds()
 
 void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTriangles)
 {
-	PROFILE("BuildTree")
+	PROFILE("BVHBuildTree")
 	if (BoundsTriangles.size() == 0)
 	{
 		return;
@@ -35,12 +35,12 @@ void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTriangles)
 
 		RecurseSplit(RootNode, NewState);
 
-		std::cout << "Total Node Count: " << NewState.TotalNodeCount << std::endl;
-		std::cout << "Leaf Node Count: " << NewState.LeafNodeCount << std::endl;
-		std::cout << "Triangle Count: " << NewState.TotalTriangleCount << std::endl;
-		std::cout << "Mean Leaf Node Triangle Count: " << static_cast<float>(NewState.TotalTriangleCount) / static_cast<float>(NewState.LeafNodeCount) << std::endl;
-		std::cout << "Max Leaf Node Triangle Count: " << NewState.LeafNodeMaxTriangleCount << std::endl;
-		std::cout << "Max Leaf Node Depth: " << NewState.MaxLeafNodeDepth << std::endl;
+		std::cout << "BVH Total Node Count: " << NewState.TotalNodeCount << std::endl;
+		std::cout << "BVH Leaf Node Count: " << NewState.LeafNodeCount << std::endl;
+		std::cout << "BVH Triangle Count: " << NewState.TotalTriangleCount << std::endl;
+		std::cout << "BVH Mean Leaf Node Triangle Count: " << static_cast<float>(NewState.TotalTriangleCount) / static_cast<float>(NewState.LeafNodeCount) << std::endl;
+		std::cout << "BVH Max Leaf Node Triangle Count: " << NewState.LeafNodeMaxTriangleCount << std::endl;
+		std::cout << "BVH Max Leaf Node Depth: " << NewState.MaxLeafNodeDepth << std::endl;
 
 		Nodes.reserve(NewState.TotalNodeCount);
 		OrderedTriangles.reserve(NewState.TotalTriangleCount);
@@ -230,11 +230,8 @@ std::optional<HitInfo> BVHTree::Intersect(const Ray& InRay, float T_Min, float T
 			CurrentNodeIndex = *(--Ptr);
 		}
 	}
-	if (ResultInfo.has_value())
-	{
-		DEBUG_LINE(ResultInfo->BoundsTestCount = BoundsTestCount);
-		DEBUG_LINE(ResultInfo->TriangleTestCount = TriangleTestCount);
-	}
+	DEBUG_LINE(InRay.BoundsTestCount = BoundsTestCount);
+	DEBUG_LINE(InRay.TriangleTestCount = TriangleTestCount);
 	return ResultInfo;
 }
 

@@ -101,14 +101,10 @@ int main()
 		}
 	}
 	TestScene.AddShape(&TestPlane, { RGB(120, 204, 157) }, { 0, -0.5, 0 });
-
+	TestScene.BuildTree();
     NormalRenderer* TestNormalRenderer = new NormalRenderer(TestCamera, TestScene);
 	TestNormalRenderer->Render(1, "Output/Normal.ppm");
     delete TestNormalRenderer;
-
-    /*SimpleRayTraceRenderer* TestSimpleRayTraceRenderer = new SimpleRayTraceRenderer(TestCamera, TestScene);
-    TestSimpleRayTraceRenderer->Render(32, "Output/SimpleRayTrace.ppm");
-    delete TestSimpleRayTraceRenderer;*/
 
     BoundsTestCountRenderer* TestBoundsTestCountRenderer = new BoundsTestCountRenderer(TestCamera, TestScene);
     TestBoundsTestCountRenderer->Render(1, "Output/BoundsTestCount.ppm");
@@ -117,6 +113,10 @@ int main()
     TriangleTestCountRenderer* TestTriangleTestCountRenderer = new TriangleTestCountRenderer(TestCamera, TestScene);
     TestTriangleTestCountRenderer->Render(1, "Output/TriangleTestCount.ppm");
     delete TestTriangleTestCountRenderer;
+
+	SimpleRayTraceRenderer* TestSimpleRayTraceRenderer = new SimpleRayTraceRenderer(TestCamera, TestScene);
+	TestSimpleRayTraceRenderer->Render(128, "Output/SimpleRayTrace.ppm");
+	delete TestSimpleRayTraceRenderer;
 
     return 0;
 }

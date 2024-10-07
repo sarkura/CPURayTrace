@@ -3,31 +3,22 @@
 
 glm::vec3 BoundsTestCountRenderer::RenderPixel(const glm::ivec2& PixelCoordinate) 
 {
-    #ifdef WITH_DEBUG_INFO
+#ifdef WITH_DEBUG_INFO
     Ray PixelRay = RenderCamera.GenerateRayDirection(PixelCoordinate);
-    auto HitResultInfo = RenderScene.Intersect(PixelRay);
-    if (HitResultInfo.has_value())
-    {
-        return RGB::GenerateHeatmapRGB(HitResultInfo->BoundsTestCount / 200.f);
-    }
-    
+    RenderScene.Intersect(PixelRay);
+    return RGB::GenerateHeatmapRGB(PixelRay.BoundsTestCount / 150.f);
+#else
     return {};
-    #else
-    return {};
-    #endif
+#endif
 }
 
-glm::vec3 TriangleTestCountRenderer::RenderPixel(const glm::ivec2& PixelCoordinate) {
-    #ifdef WITH_DEBUG_INFO
+glm::vec3 TriangleTestCountRenderer::RenderPixel(const glm::ivec2& PixelCoordinate) 
+{
+#ifdef WITH_DEBUG_INFO
     Ray PixelRay = RenderCamera.GenerateRayDirection(PixelCoordinate);
-    auto HitResultInfo = RenderScene.Intersect(PixelRay);
-    if (HitResultInfo.has_value())
-    {
-        return RGB::GenerateHeatmapRGB(HitResultInfo->TriangleTestCount / 20.f);
-    }
-    
+    RenderScene.Intersect(PixelRay);
+    return RGB::GenerateHeatmapRGB(PixelRay.TriangleTestCount / 7.f);
+#else
     return {};
-    #else
-    return {};
-    #endif
+#endif
 }

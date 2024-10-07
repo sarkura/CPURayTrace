@@ -3,34 +3,7 @@
 
 std::optional<HitInfo> Scene::Intersect(const Ray& InRay, float T_Min /*= 1e-5*/, float T_Max /*= std::numeric_limits<float>::infinity()*/) const
 {
-	std::optional<HitInfo> ResultInfo;
-
-	float MaxStep = T_Max;
-	const ShapeInstance* ResultShapeInstance = nullptr;
-
-	for (const ShapeInstance& Instance : CollectShapeInstances)
-	{
-		Ray ObjectSpaceRay = InRay.ObjectSpaceFromWorldSpace(Instance.ObjectFromWorld);
-		std::optional<HitInfo> CurHitInfo = Instance.ShapePtr->Intersect(ObjectSpaceRay, T_Min, MaxStep);
-		if (CurHitInfo.has_value())
-		{
-			MaxStep = CurHitInfo->TStep;
-			ResultInfo = CurHitInfo;
-			ResultShapeInstance = &Instance;
-		}
-	}
-
-	if (ResultShapeInstance)
-	{
-		glm::vec3 WorldSpaceHitPos = ResultShapeInstance->WorldFromObject * glm::vec4(ResultInfo->HitPos, 1.0f);
-		glm::vec3 WorldSpaceNormal = glm::transpose(ResultShapeInstance->ObjectFromWorld) * glm::vec4(ResultInfo->Normal, 0.0f);
-
-		ResultInfo->HitPos = WorldSpaceHitPos;
-		ResultInfo->Normal = glm::normalize(WorldSpaceNormal);
-		ResultInfo->HitMaterial = &(ResultShapeInstance->InstanceMaterial);
-	}
-
-	return ResultInfo;
+	return SceneBVH.Intersect(InRay, T_Min, T_Max);
 }
 
 void Scene::AddShape(const Shape* InShapes, const Material& InMaterial, const glm::vec3& InPosition /*= { 0.f,0.f,0.f }*/, const glm::vec3& InScale /*= {1.f, 1.f, 1.f}*/, const glm::vec3& InRotate /*= { 0.f,0.f,0.f }*/)

@@ -13,6 +13,9 @@ struct Ray
 
 	glm::vec3 Hit(float T) const;
 	Ray ObjectSpaceFromWorldSpace(const glm::mat4& ObjectFromWorld) const;
+
+	DEBUG_LINE(mutable size_t BoundsTestCount = 0)
+	DEBUG_LINE(mutable size_t TriangleTestCount = 0)
 };
 
 
@@ -22,10 +25,6 @@ struct HitInfo
 	glm::vec3 HitPos = {0.f, 0.f, 0.f};
 	glm::vec3 Normal = { 0.f, 0.f, 0.f };
 	const Material* HitMaterial = nullptr;
-
-	DEBUG_LINE(size_t BoundsTestCount = 0);
-	DEBUG_LINE(size_t TriangleTestCount = 0);
-	DEBUG_LINE(size_t BoundsDepth = 0);
 };
 
 
