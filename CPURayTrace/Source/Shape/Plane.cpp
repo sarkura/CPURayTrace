@@ -28,3 +28,8 @@ std::optional<HitInfo> Plane::Intersect(const Ray& InRay, float T_Min /*= 1e-5*/
 	}
 	return std::nullopt;
 }
+
+Bounds Plane::GetBounds() const
+{
+	return {};
+}

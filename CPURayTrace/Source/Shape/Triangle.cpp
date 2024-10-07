@@ -79,3 +79,12 @@ std::optional<HitInfo> Triangle::Intersect(const Ray& InRay, float T_Min /*= 1e-
 
 	return std::nullopt;
 }
+
+Bounds Triangle::GetBounds() const
+{
+	Bounds ShapeBounds;
+	ShapeBounds.Expand(VertexPos0);
+	ShapeBounds.Expand(VertexPos1);
+	ShapeBounds.Expand(VertexPos2);
+	return ShapeBounds;
+}

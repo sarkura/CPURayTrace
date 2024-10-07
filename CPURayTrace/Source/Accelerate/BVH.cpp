@@ -11,11 +11,8 @@ void BVHTreeNode::UpdateBounds()
 	TreeBounds.InvaildBounds();
 	for (const auto& CurTriangle : BoundsTraiangles)
 	{
-		TreeBounds.Expand(CurTriangle.VertexPos0);
-		TreeBounds.Expand(CurTriangle.VertexPos1);
-		TreeBounds.Expand(CurTriangle.VertexPos2);
+		TreeBounds.Expand(CurTriangle.GetBounds());
 	}
-
 }
 
 void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
@@ -43,6 +40,7 @@ void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
 		std::cout << "Triangle Count: " << NewState.TotalTriangleCount << std::endl;
 		std::cout << "Mean Leaf Node Triangle Count: " << static_cast<float>(NewState.TotalTriangleCount) / static_cast<float>(NewState.LeafNodeCount) << std::endl;
 		std::cout << "Max Leaf Node Triangle Count: " << NewState.LeafNodeMaxTriangleCount << std::endl;
+		std::cout << "Max Leaf Node Depth: " << NewState.MaxLeafNodeDepth << std::endl;
 
 		Nodes.reserve(NewState.TotalNodeCount);
 		OrderedTraiangles.reserve(NewState.TotalTriangleCount);
@@ -242,6 +240,11 @@ std::optional<HitInfo> BVHTree::Intersect(const Ray& InRay, float T_Min, float T
 		DEBUG_LINE(ResultInfo->TriangleTestCount = TriangleTestCount);
 	}
 	return ResultInfo;
+}
+
+Bounds BVHTree::GetBounds() const
+{
+	return Nodes[0].TreeBounds;
 }
 
 int BVHTree::RecursiveFlatten(BVHTreeNode* FlattenNode)

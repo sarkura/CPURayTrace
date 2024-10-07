@@ -49,3 +49,9 @@ std::optional<HitInfo> Sphere::Intersect(const Ray& InRay, float T_Min, float T_
 	}
 	return std::nullopt;
 }
+
+Bounds Sphere::GetBounds() const
+{
+	Bounds ShapeBounds = { Center - Radius , Center + Radius } ;
+	return ShapeBounds;
+}

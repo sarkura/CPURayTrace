@@ -85,3 +85,17 @@ float Bounds::Area() const
 	auto Diagonal = GetBoundsDiagonal();
 	return (Diagonal.x * (Diagonal.y + Diagonal.z) + Diagonal.y * Diagonal.z) * 2.f;
 }
+
+glm::vec3 Bounds::GetCorner(size_t Idx) const
+{
+	auto Corner = BoundsMax;
+	if ((Idx & 0b1) == 0) Corner.x = BoundsMin.x;
+	if ((Idx & 0b10) == 0) Corner.y = BoundsMin.y;
+	if ((Idx & 0b100) == 0) Corner.z = BoundsMin.z;
+	return Corner;
+}
+
+bool Bounds::IsValid() const
+{
+	return BoundsMax.x >= BoundsMin.x && BoundsMax.y >= BoundsMin.y && BoundsMax.z >= BoundsMin.z;
+}

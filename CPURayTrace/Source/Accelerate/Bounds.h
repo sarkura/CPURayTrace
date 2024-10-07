@@ -15,6 +15,8 @@ public:
 	void InvaildBounds();
 	glm::vec3 GetBoundsDiagonal() const;
 	float Area() const;
+	glm::vec3 GetCorner(size_t Idx) const;
+	bool IsValid() const;
 public:
 	glm::vec3 BoundsMin;
 	glm::vec3 BoundsMax;

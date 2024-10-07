@@ -16,6 +16,8 @@ public:
 
 	bool LoadFile(const std::filesystem::path& FilePath, std::vector<Triangle>& Triangles);
 
+	virtual Bounds GetBounds() const override;
+
 private:
 
 	BVHTree ModelBVHTree{};

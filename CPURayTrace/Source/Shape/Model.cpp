@@ -96,3 +96,8 @@ bool Model::LoadFile(const std::filesystem::path& FilePath, std::vector<Triangle
 	}
 	return true;
 }
+
+Bounds Model::GetBounds() const
+{
+	return ModelBVHTree.GetBounds();
+}

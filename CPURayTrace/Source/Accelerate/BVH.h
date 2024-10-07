@@ -34,11 +34,13 @@ struct BVHState
 	size_t TotalNodeCount = 0;
 	size_t LeafNodeCount = 0;
 	size_t LeafNodeMaxTriangleCount = 0;
+	size_t MaxLeafNodeDepth = 0;
 
 	void AddLeafNode(BVHTreeNode* InBVHTreeNode)
 	{
 		LeafNodeCount += 1;
 		LeafNodeMaxTriangleCount = glm::max(LeafNodeMaxTriangleCount, InBVHTreeNode->BoundsTraiangles.size());
+		MaxLeafNodeDepth = glm::max(MaxLeafNodeDepth, static_cast<size_t>(InBVHTreeNode->Depth));
 	}
 };
 
@@ -62,6 +64,7 @@ public:
 	void BuildTree(std::vector<Triangle>&& BoundsTraiangles);
 
 	virtual std::optional<HitInfo> Intersect(const Ray& InRay, float T_Min, float T_Max) const override;
+	virtual Bounds GetBounds() const override;
 private:
 	void RecurseSplit(BVHTreeNode* SplitNode, BVHState& InBVHState);
 	int RecursiveFlatten(BVHTreeNode* FlattenNode);
