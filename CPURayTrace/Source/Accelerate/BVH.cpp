@@ -9,16 +9,16 @@
 void BVHTreeNode::UpdateBounds()
 {
 	TreeBounds.InvaildBounds();
-	for (const auto& CurTriangle : BoundsTraiangles)
+	for (const auto& CurTriangle : BoundsTriangles)
 	{
 		TreeBounds.Expand(CurTriangle.GetBounds());
 	}
 }
 
-void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
+void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTriangles)
 {
 	PROFILE("BuildTree")
-	if (BoundsTraiangles.size() == 0)
+	if (BoundsTriangles.size() == 0)
 	{
 		return;
 	}
@@ -26,12 +26,12 @@ void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
 	RootNode = TreeNodeAllocator.Allocator();
 	if (RootNode)
 	{
-		RootNode->BoundsTraiangles = std::move(BoundsTraiangles);
+		RootNode->BoundsTriangles = std::move(BoundsTriangles);
 		RootNode->UpdateBounds();
 		RootNode->Depth = 1;
 
 		BVHState NewState;
-		NewState.TotalTriangleCount = RootNode->BoundsTraiangles.size();
+		NewState.TotalTriangleCount = RootNode->BoundsTriangles.size();
 
 		RecurseSplit(RootNode, NewState);
 
@@ -43,7 +43,7 @@ void BVHTree::BuildTree(std::vector<Triangle>&& BoundsTraiangles)
 		std::cout << "Max Leaf Node Depth: " << NewState.MaxLeafNodeDepth << std::endl;
 
 		Nodes.reserve(NewState.TotalNodeCount);
-		OrderedTraiangles.reserve(NewState.TotalTriangleCount);
+		OrderedTriangles.reserve(NewState.TotalTriangleCount);
 		RecursiveFlatten(RootNode);
 	}
 }
@@ -53,7 +53,7 @@ void BVHTree::RecurseSplit(BVHTreeNode* SplitNode, BVHState& InBVHState)
 	if (SplitNode)
 	{
 		InBVHState.TotalNodeCount += 1;
-		if (SplitNode->BoundsTraiangles.size() == 1 || SplitNode->Depth > 32)
+		if (SplitNode->BoundsTriangles.size() == 1 || SplitNode->Depth > 32)
 		{
 			InBVHState.AddLeafNode(SplitNode);
 			return;
@@ -72,15 +72,15 @@ void BVHTree::RecurseSplit(BVHTreeNode* SplitNode, BVHState& InBVHState)
 			Bounds BucketBounds[SplitBucketCount] = {};
 			size_t BucketTriangleCount[SplitBucketCount] = {0};
 			size_t TriangleIndex = 0;
-			for (const Triangle& BoundsTraiangle : SplitNode->BoundsTraiangles)
+			for (const Triangle& BoundsTriangle : SplitNode->BoundsTriangles)
 			{
-				float BarycentricCoordinates = (BoundsTraiangle.VertexPos0[Axis] + BoundsTraiangle.VertexPos1[Axis] + BoundsTraiangle.VertexPos2[Axis]) / 3.0f;
+				float BarycentricCoordinates = (BoundsTriangle.VertexPos0[Axis] + BoundsTriangle.VertexPos1[Axis] + BoundsTriangle.VertexPos2[Axis]) / 3.0f;
 				size_t BucketId = glm::clamp<size_t>(
 					static_cast<size_t>(glm::floor((BarycentricCoordinates - SplitNode->TreeBounds.BoundsMin[Axis]) * SplitBucketCount / Diagonal[Axis])),
 					0, SplitBucketCount - 1);
-				BucketBounds[BucketId].Expand(BoundsTraiangle.VertexPos0);
-				BucketBounds[BucketId].Expand(BoundsTraiangle.VertexPos1);
-				BucketBounds[BucketId].Expand(BoundsTraiangle.VertexPos2);
+				BucketBounds[BucketId].Expand(BoundsTriangle.VertexPos0);
+				BucketBounds[BucketId].Expand(BoundsTriangle.VertexPos1);
+				BucketBounds[BucketId].Expand(BoundsTriangle.VertexPos2);
 				BucketTriangleCount[BucketId] += 1;
 				BucketTriangleIndex[Axis][BucketId].push_back(TriangleIndex);
 				TriangleIndex += 1;
@@ -126,7 +126,6 @@ void BVHTree::RecurseSplit(BVHTreeNode* SplitNode, BVHState& InBVHState)
 			return;
 		}
 
-		//SplitNode->BoundsTraiangles.clear();
 
 		BVHTreeNode* LeftChildNode = TreeNodeAllocator.Allocator();
 		BVHTreeNode* RightChildNode = TreeNodeAllocator.Allocator();
@@ -134,26 +133,26 @@ void BVHTree::RecurseSplit(BVHTreeNode* SplitNode, BVHState& InBVHState)
 		SplitNode->LeftChildNode = LeftChildNode;
 		SplitNode->RightChildNode = RightChildNode;
 
-		LeftChildNode->BoundsTraiangles.reserve(LeftTriangleCount);
-		RightChildNode->BoundsTraiangles.reserve(RightTriangleCount);
+		LeftChildNode->BoundsTriangles.reserve(LeftTriangleCount);
+		RightChildNode->BoundsTriangles.reserve(RightTriangleCount);
 
 		for (size_t i = 0; i < MinSplitIndex; i++)
 		{
 			for (size_t Index : BucketTriangleIndex[SplitNode->SplitAxis][i])
 			{
-				LeftChildNode->BoundsTraiangles.push_back(SplitNode->BoundsTraiangles[Index]);
+				LeftChildNode->BoundsTriangles.push_back(SplitNode->BoundsTriangles[Index]);
 			}
 		}
 		for (size_t i = MinSplitIndex; i < SplitBucketCount; i++)
 		{
 			for (size_t Index : BucketTriangleIndex[SplitNode->SplitAxis][i])
 			{
-				RightChildNode->BoundsTraiangles.push_back(SplitNode->BoundsTraiangles[Index]);
+				RightChildNode->BoundsTriangles.push_back(SplitNode->BoundsTriangles[Index]);
 			}
 		}
 
-		SplitNode->BoundsTraiangles.clear();
-		SplitNode->BoundsTraiangles.shrink_to_fit();
+		SplitNode->BoundsTriangles.clear();
+		SplitNode->BoundsTriangles.shrink_to_fit();
 
 		LeftChildNode->TreeBounds = LeftChildBound;
 		RightChildNode->TreeBounds = RightChildBound;
@@ -210,21 +209,18 @@ std::optional<HitInfo> BVHTree::Intersect(const Ray& InRay, float T_Min, float T
 		}
 		else
 		{
-			auto TriangleIterator = OrderedTraiangles.begin() + Node.TriangleIndex;
+			auto TriangleIterator = OrderedTriangles.begin() + Node.TriangleIndex;
 
 			DEBUG_LINE(TriangleTestCount += Node.TriangleCount)
 
 			for (size_t i = 0; i < Node.TriangleCount; i++)
 			{
-				auto TraiangleHitInfo = TriangleIterator->Intersect(InRay, T_Min, T_Max);
+				auto TriangleHitInfo = TriangleIterator->Intersect(InRay, T_Min, T_Max);
 				++TriangleIterator;
-				if (TraiangleHitInfo.has_value())
+				if (TriangleHitInfo.has_value())
 				{
-					T_Max = TraiangleHitInfo->TStep;
-					ResultInfo = TraiangleHitInfo;
-
-					DEBUG_LINE(ResultInfo->BoundsDepth = Node.Depth);
-
+					T_Max = TriangleHitInfo->TStep;
+					ResultInfo = TriangleHitInfo;
 				}
 			}
 			if (Ptr == Stack.begin())
@@ -249,8 +245,7 @@ Bounds BVHTree::GetBounds() const
 
 int BVHTree::RecursiveFlatten(BVHTreeNode* FlattenNode)
 {
-	BVHNode NewBVHNode{ FlattenNode->TreeBounds, 0, static_cast<uint16_t>(FlattenNode->BoundsTraiangles.size()), 
-		static_cast<uint8_t>(FlattenNode->Depth), static_cast<uint8_t>(FlattenNode->SplitAxis)};
+	BVHNode NewBVHNode{ FlattenNode->TreeBounds, 0, static_cast<uint16_t>(FlattenNode->BoundsTriangles.size()), static_cast<uint8_t>(FlattenNode->SplitAxis)};
 	int Index = static_cast<int>(Nodes.size());
 	Nodes.push_back(NewBVHNode);
 	if (NewBVHNode.TriangleCount == 0)
@@ -260,10 +255,10 @@ int BVHTree::RecursiveFlatten(BVHTreeNode* FlattenNode)
 	}
 	else
 	{
-		Nodes[Index].TriangleIndex = static_cast<int>(OrderedTraiangles.size());
-		for (const Triangle& NodeTriangle : FlattenNode->BoundsTraiangles)
+		Nodes[Index].TriangleIndex = static_cast<int>(OrderedTriangles.size());
+		for (const Triangle& NodeTriangle : FlattenNode->BoundsTriangles)
 		{
-			OrderedTraiangles.push_back(NodeTriangle);
+			OrderedTriangles.push_back(NodeTriangle);
 		}
 	}
 	return Index;

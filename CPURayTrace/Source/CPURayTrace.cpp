@@ -26,7 +26,7 @@ int main()
 
 	Film Film_Test(192 * 4, 108 * 4);
 
-    Camera TestCamera(Film_Test, { -3.6f, 0.f, 0.f }, { 0.f, 0.f, 0.f }, 45.f);
+    Camera TestCamera(Film_Test, { -12.0f, 5.0f, -12.0f }, { 0.f, 0.f, 0.f }, 45.f);
 
 	Sphere TestSphere({ 0.f, 0.f, 0.f },1.0f );
 
@@ -35,7 +35,7 @@ int main()
     Plane TestPlane({ 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 
 
-    Material TestSphereMaterialA;
+    /*Material TestSphereMaterialA;
     TestSphereMaterialA.Albedo = {1.0f, 1.0f, 1.0f};
     TestSphereMaterialA.bSpecular = false;
     TestSphereMaterialA.Emissive = RGB(255, 128, 128);
@@ -56,23 +56,59 @@ int main()
     Material TestPlaneMaterial;
     TestPlaneMaterial.Albedo = RGB(120, 204, 157);
 
-    Material ErrorMaterial;
+    Material ErrorMaterial;*/
     
     Scene TestScene;
 
-    TestScene.AddShape(&TestModel, TestModelMaterial, { 0.f, 0.f, 0.f }, { 3.f, 3.f, 3.f });
+    /*TestScene.AddShape(&TestModel, TestModelMaterial, { 0.f, 0.f, 0.f }, { 3.f, 3.f, 3.f });
     TestScene.AddShape(&TestSphere, TestSphereMaterialA, { 0.f, 0.f, 2.5f });
     TestScene.AddShape(&TestSphere, TestSphereMaterialB, { 0.f, 0.f, -2.5f });
     TestScene.AddShape(&TestSphere, TestSphereMaterialC, { 3.f, 0.5f, -2.f });
-    TestScene.AddShape(&TestPlane, TestPlaneMaterial, { 0, -0.5, 0 });
+    TestScene.AddShape(&TestPlane, TestPlaneMaterial, { 0, -0.5, 0 });*/
+
+	RandomDistribution<float> Range(1234, 0.f, 1.0f);
+	for (int i = 0; i < 10000; i++) {
+		glm::vec3 random_pos{
+			Range.GetRandom() * 100 - 50,
+			Range.GetRandom() * 2,
+			Range.GetRandom() * 100 - 50,
+		};
+		float u = Range.GetRandom();
+		if (u < 0.9) {
+			TestScene.AddShape(
+				&TestModel,
+				{ RGB(202, 159, 117), Range.GetRandom() > 0.5 },
+				random_pos,
+				{ 1, 1, 1 },
+				{ Range.GetRandom() * 360, Range.GetRandom() * 360, Range.GetRandom() * 360 }
+			);
+		}
+		else if (u < 0.95) {
+			TestScene.AddShape(
+				&TestSphere,
+				{ { Range.GetRandom(), Range.GetRandom(), Range.GetRandom() }, true },
+				random_pos,
+				{ 0.4, 0.4, 0.4 }
+			);
+		}
+		else {
+			random_pos.y += 6;
+			TestScene.AddShape(
+				&TestSphere,
+				{ { 1, 1, 1 }, false, { Range.GetRandom() * 4, Range.GetRandom() * 4, Range.GetRandom() * 4 } },
+				random_pos
+			);
+		}
+	}
+	TestScene.AddShape(&TestPlane, { RGB(120, 204, 157) }, { 0, -0.5, 0 });
 
     NormalRenderer* TestNormalRenderer = new NormalRenderer(TestCamera, TestScene);
 	TestNormalRenderer->Render(1, "Output/Normal.ppm");
     delete TestNormalRenderer;
 
-    SimpleRayTraceRenderer* TestSimpleRayTraceRenderer = new SimpleRayTraceRenderer(TestCamera, TestScene);
+    /*SimpleRayTraceRenderer* TestSimpleRayTraceRenderer = new SimpleRayTraceRenderer(TestCamera, TestScene);
     TestSimpleRayTraceRenderer->Render(32, "Output/SimpleRayTrace.ppm");
-    delete TestSimpleRayTraceRenderer;
+    delete TestSimpleRayTraceRenderer;*/
 
     BoundsTestCountRenderer* TestBoundsTestCountRenderer = new BoundsTestCountRenderer(TestCamera, TestScene);
     TestBoundsTestCountRenderer->Render(1, "Output/BoundsTestCount.ppm");

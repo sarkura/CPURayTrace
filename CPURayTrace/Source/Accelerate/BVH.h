@@ -8,7 +8,7 @@ public:
 	void UpdateBounds();
 public:
 	Bounds TreeBounds = {};
-	std::vector<Triangle> BoundsTraiangles;
+	std::vector<Triangle> BoundsTriangles;
 	BVHTreeNode* LeftChildNode = nullptr;
 	BVHTreeNode* RightChildNode = nullptr;
 	int Depth = 0;
@@ -24,7 +24,6 @@ struct alignas(32) BVHNode
 		int TriangleIndex;
 	};
 	uint16_t TriangleCount;
-	uint8_t Depth;
 	uint8_t SplitAxis;
 };
 
@@ -39,7 +38,7 @@ struct BVHState
 	void AddLeafNode(BVHTreeNode* InBVHTreeNode)
 	{
 		LeafNodeCount += 1;
-		LeafNodeMaxTriangleCount = glm::max(LeafNodeMaxTriangleCount, InBVHTreeNode->BoundsTraiangles.size());
+		LeafNodeMaxTriangleCount = glm::max(LeafNodeMaxTriangleCount, InBVHTreeNode->BoundsTriangles.size());
 		MaxLeafNodeDepth = glm::max(MaxLeafNodeDepth, static_cast<size_t>(InBVHTreeNode->Depth));
 	}
 };
@@ -61,7 +60,7 @@ class BVHTree : public Shape
 {
 public:
 	BVHTree() = default;
-	void BuildTree(std::vector<Triangle>&& BoundsTraiangles);
+	void BuildTree(std::vector<Triangle>&& BoundsTriangles);
 
 	virtual std::optional<HitInfo> Intersect(const Ray& InRay, float T_Min, float T_Max) const override;
 	virtual Bounds GetBounds() const override;
@@ -70,7 +69,7 @@ private:
 	int RecursiveFlatten(BVHTreeNode* FlattenNode);
 private:
 	std::vector<BVHNode> Nodes;
-	std::vector<Triangle> OrderedTraiangles;
+	std::vector<Triangle> OrderedTriangles;
 	BVHTreeNode* RootNode = nullptr;
 	BVHTreeNodeAllocator TreeNodeAllocator{};
 };
