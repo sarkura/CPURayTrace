@@ -1,5 +1,6 @@
 #include "SimpleRayTraceRenderer.h"
 #include "FrameSpace.h"
+#include "Spherical.h"
 
 glm::vec3 SimpleRayTraceRenderer::RenderPixel(const glm::ivec2& PixelCoordinate)
 {
@@ -27,19 +28,11 @@ glm::vec3 SimpleRayTraceRenderer::RenderPixel(const glm::ivec2& PixelCoordinate)
 			{
 				glm::vec3 LocalViewDirection = ReflectRayFrameSpace.LocalFromWorld(-PixelRay.Direction);
 				LocalRayDirection = { -LocalViewDirection.x, LocalViewDirection.y, -LocalViewDirection.z };
+				LocalRayDirection = glm::normalize(LocalRayDirection);
 			}
 			else
 			{
-				do
-				{
-					LocalRayDirection = { RandHandle.GetRandom(), RandHandle.GetRandom(), RandHandle.GetRandom() };
-					LocalRayDirection = LocalRayDirection * 2.f - 1.0f;
-				} while (glm::length(LocalRayDirection) > 1.0f);
-
-				if (LocalRayDirection.y < 0.f)
-				{
-					LocalRayDirection.y = -LocalRayDirection.y;
-				}
+				LocalRayDirection = SpheraicalSample::UniformSampleHemisphere<float>(RandHandle);
 			}
 			PixelRay.Direction = ReflectRayFrameSpace.WorldFromLocal(LocalRayDirection);
 		}

@@ -20,6 +20,7 @@
 #include "DebugRenderer.h"
 
 #include "Log.hpp"
+#include "PathTraceRenderer.h"
 
 int main()
 {
@@ -117,6 +118,10 @@ int main()
 	SimpleRayTraceRenderer* TestSimpleRayTraceRenderer = new SimpleRayTraceRenderer(TestCamera, TestScene);
 	TestSimpleRayTraceRenderer->Render(128, "Output/SimpleRayTrace.ppm");
 	delete TestSimpleRayTraceRenderer;
+
+	PathTraceRenderer* TestPathTraceRenderer = new PathTraceRenderer(TestCamera, TestScene);
+	TestPathTraceRenderer->Render(128, "Output/PathTrace.ppm");
+	delete TestPathTraceRenderer;
 
     return 0;
 }
