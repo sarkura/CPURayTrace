@@ -262,7 +262,7 @@ std::optional<HitInfo> SceneBVHTree::Intersect(const Ray& InRay, float T_Min, fl
 	{
 		ResultInfo->HitPos = ResultInstance->WorldFromObject * glm::vec4(ResultInfo->HitPos, 1.f);
 		ResultInfo->Normal = glm::normalize(glm::vec3(glm::transpose(ResultInstance->ObjectFromWorld) * glm::vec4(ResultInfo->Normal, 0.f)));
-		ResultInfo->HitMaterial = &(ResultInstance->InstanceMaterial);
+		ResultInfo->HitMaterial = ResultInstance->InstanceMaterial;
 	}
 
 	DEBUG_LINE(InRay.BoundsTestCount += BoundsTestCount);

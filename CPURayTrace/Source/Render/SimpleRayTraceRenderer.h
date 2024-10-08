@@ -1,5 +1,5 @@
-#pragma once
-
-#include "BaseRenderer.h"
-
-DEFINE_RENDER(SimpleRayTrace)
+//#pragma once
+//
+//#include "BaseRenderer.h"
+//
+//DEFINE_RENDER(SimpleRayTrace)

@@ -22,39 +22,21 @@ glm::vec3 PathTraceRenderer::RenderPixel(const glm::ivec2& PixelCoordinate)
 		auto HitResultInfo = RenderScene.Intersect(PixelRay);
 		if (HitResultInfo.has_value())
 		{
-
-			Radiance += Beta * HitResultInfo->HitMaterial->Emissive;
-			
+			if (!HitResultInfo->HitMaterial)
+			{
+				break;
+			}
+			Radiance += Beta * HitResultInfo->HitMaterial->GetEmissive();
 			if (RandHandle.GetRandom() > Probability)
 			{
 				break;
 			}
-			Beta *= HitResultInfo->HitMaterial->Albedo;
 			Beta /= Probability;
+
 			FrameSpace ReflectRayFrameSpace(HitResultInfo->Normal);
-			glm::vec3 LocalRayDirection = {};
-			//glm::vec3 BRDF = {};
-			//float PDF = 0;
-			if (HitResultInfo->HitMaterial->bSpecular)
-			{
-				glm::vec3 LocalViewDirection = ReflectRayFrameSpace.LocalFromWorld(-PixelRay.Direction);
-				LocalRayDirection = { -LocalViewDirection.x, LocalViewDirection.y, -LocalViewDirection.z };
-				//PDF = 1.0f;
-				//BRDF = HitResultInfo->HitMaterial->Albedo / LocalRayDirection.y;
-			}
-			else
-			{
-				LocalRayDirection = SpheraicalSample::CosineSampleHemisphere({ RandHandle.GetRandom(), RandHandle.GetRandom() });
-				//PDF = 1 / (2PI)
-				//BRDF = Albedo / PI
-				//float InversePI = 1.0f / static_cast<float>(PI);
-				//PDF = InversePI * 0.5f;
-				//BRDF = HitResultInfo->HitMaterial->Albedo * InversePI;
-				//PDF = LocalRayDirection.y * InversePI;
-				//BRDF = HitResultInfo->HitMaterial->Albedo * InversePI;
-			}
-			
-			//Beta *= BRDF * LocalRayDirection.y / PDF;
+			glm::vec3 LocalViewDirection = ReflectRayFrameSpace.LocalFromWorld(-PixelRay.Direction);
+			glm::vec3 LocalRayDirection = HitResultInfo->HitMaterial->Sample_BRDF(LocalViewDirection, Beta, RandHandle);
+
 			LocalRayDirection = glm::normalize(LocalRayDirection);
 			PixelRay.Origin = HitResultInfo->HitPos;
 			PixelRay.Direction = ReflectRayFrameSpace.WorldFromLocal(LocalRayDirection);

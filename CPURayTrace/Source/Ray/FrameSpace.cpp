@@ -4,7 +4,7 @@ FrameSpace::FrameSpace(const glm::vec3& InNormal)
 {
 	YAXis = InNormal;
 
-	glm::vec3 CrossVector = abs(YAXis.y) < 0.99999 ? glm::vec3(0, 1, 0) : glm::vec3(0, 0, 1);
+	glm::vec3 CrossVector = glm::abs(YAXis.y) < 0.99999 ? glm::vec3(0, 1, 0) : glm::vec3(0, 0, 1);
 
 	XAXis = glm::cross(CrossVector, YAXis);
 	ZAXis = glm::cross(XAXis, YAXis);

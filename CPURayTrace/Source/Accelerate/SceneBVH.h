@@ -6,7 +6,7 @@
 struct ShapeInstance
 {
 	const Shape* ShapePtr = nullptr;
-	Material InstanceMaterial;
+	const Material* InstanceMaterial = nullptr;
 	glm::mat4 WorldFromObject = glm::mat4();
 	glm::mat4 ObjectFromWorld = glm::mat4();
 

@@ -9,11 +9,11 @@ public:
 	RandomDistribution(Tx InMin, Tx InMax);
 	RandomDistribution(int Seed, Tx InMin, Tx InMax);
 
-	Tx GetRandom();
+	Tx GetRandom() const;
 	void SetNewSeed(int InSeed);
 private:
-	std::mt19937 RandomSeed;
-	std::uniform_real_distribution<Tx> Uniform;
+	mutable std::mt19937 RandomSeed;
+	mutable std::uniform_real_distribution<Tx> Uniform;
 };
 
 template<typename Tx>
@@ -37,7 +37,7 @@ RandomDistribution<Tx>::RandomDistribution(int Seed, Tx InMin, Tx InMax):
 }
 
 template<typename Tx>
-Tx RandomDistribution<Tx>::GetRandom()
+Tx RandomDistribution<Tx>::GetRandom() const
 {
 	return Uniform(RandomSeed);
 }

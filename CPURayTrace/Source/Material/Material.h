@@ -1,12 +1,14 @@
 #pragma once
 #include "glm/glm.hpp"
+#include "RandomDistribution.hpp"
 
 class Material
 {
 public:
-	glm::vec3 Albedo = {1.0f, 1.0f, 1.0f};
-	bool bSpecular = false;
-	glm::vec3 Emissive = { 0.0f, 0.0f, 0.0f };
-};
+	virtual glm::vec3 Sample_BRDF(const glm::vec3& LocalViewDirection, glm::vec3& Beta, const RandomDistribution<float>& RandHandle) const = 0;
 
-extern const Material ErrorMaterial;
+	void SetEmissive(const glm::vec3& InEmissive);
+	glm::vec3 GetEmissive() const;
+private:
+	glm::vec3 Emissive = { 0.f,0.f ,0.f };
+};

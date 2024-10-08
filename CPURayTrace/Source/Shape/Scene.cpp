@@ -6,7 +6,7 @@ std::optional<HitInfo> Scene::Intersect(const Ray& InRay, float T_Min /*= 1e-5*/
 	return SceneBVH.Intersect(InRay, T_Min, T_Max);
 }
 
-void Scene::AddShape(const Shape* InShapes, const Material& InMaterial, const glm::vec3& InPosition /*= { 0.f,0.f,0.f }*/, const glm::vec3& InScale /*= {1.f, 1.f, 1.f}*/, const glm::vec3& InRotate /*= { 0.f,0.f,0.f }*/)
+void Scene::AddShape(const Shape* InShapes, const Material* InMaterial, const glm::vec3& InPosition /*= { 0.f,0.f,0.f }*/, const glm::vec3& InScale /*= {1.f, 1.f, 1.f}*/, const glm::vec3& InRotate /*= { 0.f,0.f,0.f }*/)
 {
 	glm::mat4 ScaleMx = glm::scale(glm::mat4(1.0f), InScale);
 	glm::mat4 RotateXMx = glm::rotate(glm::mat4(1.0f), glm::radians(InRotate.x), { 1.0f, 0.0f, 0.0f });

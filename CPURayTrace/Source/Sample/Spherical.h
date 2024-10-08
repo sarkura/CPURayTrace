@@ -3,26 +3,25 @@
 #include "glm/glm.hpp"
 #include "RandomDistribution.hpp"
 #include "ConstantDefine.hpp"
-#include <cmath>
 
 namespace SpheraicalSample
 {
 	inline glm::vec2 UniformSampleUintDisk(const glm::vec2& UV)
 	{
-		float R = std::sqrt(UV.x);
+		float R = glm::sqrt(UV.x);
 		float Theta = 2.0f * static_cast<float>(PI) * UV.y;
 		return { R, Theta };
 	}
 
 	inline glm::vec3 CosineSampleHemisphere(const glm::vec2& UV)
 	{
-		float R = std::sqrt(UV.x);
+		float R = glm::sqrt(UV.x);
 		float PHI = 2 * static_cast<float>(PI) * UV.y;
-		return { R * std::cos(PHI), std::sqrt(1 - R * R), R * std::sin(PHI) };
+		return { R * glm::cos(PHI), glm::sqrt(1 - R * R), R * glm::sin(PHI) };
 	}
 
 	template<typename Tx>
-	inline glm::vec3 UniformSampleHemisphere(RandomDistribution<Tx>& RandHandle)
+	inline glm::vec3 UniformSampleHemisphere(const RandomDistribution<Tx>& RandHandle)
 	{
 		glm::vec3 Result{};
 		do

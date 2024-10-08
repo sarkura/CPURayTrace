@@ -1,6 +1,6 @@
 #include "ThreadPool.h"
 #include "Profile.h"
-
+#include <cmath>
 
 //ThreadPool Thread_Pool = { {true, 395, 252}, 0 };
 ThreadPool Thread_Pool = { {false, 0, 0}, 0 };
