@@ -2,12 +2,12 @@
 
 FrameSpace::FrameSpace(const glm::vec3& InNormal)
 {
-	YAXis = InNormal;
+	YAXis = glm::normalize(InNormal);
 
 	glm::vec3 CrossVector = glm::abs(YAXis.y) < 0.99999 ? glm::vec3(0, 1, 0) : glm::vec3(0, 0, 1);
 
-	XAXis = glm::cross(CrossVector, YAXis);
-	ZAXis = glm::cross(XAXis, YAXis);
+	XAXis = glm::normalize(glm::cross(CrossVector, YAXis));
+	ZAXis = glm::normalize(glm::cross(XAXis, YAXis));
 }
 
 glm::vec3 FrameSpace::LocalFromWorld(const glm::vec3& InWorldDirection) const

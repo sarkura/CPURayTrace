@@ -15,7 +15,7 @@ DiffuseMaterial::DiffuseMaterial(const glm::vec3& InAlbedo)
 
 //BRDF = Albedo * InversePI;
 //PDF = LocalRayDirection.y * InversePI;
-glm::vec3 DiffuseMaterial::Sample_BRDF(const glm::vec3& LocalViewDirection, glm::vec3& Beta, const RandomDistribution<float>& RandHandle) const
+glm::vec3 DiffuseMaterial::SampleBSDF(const glm::vec3& HitPostion, const glm::vec3& LocalViewDirection, glm::vec3& Beta, const RandomDistribution<float>& RandHandle) const
 {
 	Beta *= Albedo;
 	glm::vec3 LocalRayDirection = SpheraicalSample::CosineSampleHemisphere({ RandHandle.GetRandom(), RandHandle.GetRandom() });

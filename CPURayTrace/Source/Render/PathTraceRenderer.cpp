@@ -35,7 +35,7 @@ glm::vec3 PathTraceRenderer::RenderPixel(const glm::ivec2& PixelCoordinate)
 
 			FrameSpace ReflectRayFrameSpace(HitResultInfo->Normal);
 			glm::vec3 LocalViewDirection = ReflectRayFrameSpace.LocalFromWorld(-PixelRay.Direction);
-			glm::vec3 LocalRayDirection = HitResultInfo->HitMaterial->Sample_BRDF(LocalViewDirection, Beta, RandHandle);
+			glm::vec3 LocalRayDirection = HitResultInfo->HitMaterial->SampleBSDF(HitResultInfo->HitPos, LocalViewDirection, Beta, RandHandle);
 
 			LocalRayDirection = glm::normalize(LocalRayDirection);
 			PixelRay.Origin = HitResultInfo->HitPos;

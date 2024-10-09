@@ -22,6 +22,9 @@
 
 
 #include "Log.hpp"
+#include "ConductorMaterial.h"
+#include "DielectricMaterial.h"
+#include "GroundMaterial.h"
 
 
 int main()
@@ -29,7 +32,7 @@ int main()
 
 	Film Film_Test(192 * 4, 108 * 4);
 
-    Camera TestCamera(Film_Test, { -12.0f, 5.0f, -12.0f }, { 0.f, 0.f, 0.f }, 45.f);
+    Camera TestCamera(Film_Test, { -10.0f, 1.5f, 0.0f }, { 0.f, 0.f, 0.f }, 45.f);
 
 	Sphere TestSphere({ 0.f, 0.f, 0.f },1.0f );
     Model TestModel("Asset/Models/dragon_871k.obj");
@@ -37,65 +40,48 @@ int main()
     
     Scene TestScene;
 
-	RandomDistribution<float> Range(1234, 0.f, 1.0f);
-	for (int i = 0; i < 10000; i++) 
+	for (int i = -3; i <= 3; i++) 
 	{
-		glm::vec3 random_pos{
-			Range.GetRandom() * 100 - 50,
-			Range.GetRandom() * 2,
-			Range.GetRandom() * 100 - 50,
-		};
-		float u = Range.GetRandom();
-		if (u < 0.9) 
-		{
-			if (Range.GetRandom() > 0.5)
-			{
-				SpecularMaterial* NewSpecularMaterial = new SpecularMaterial({ RGB(202, 159, 117) });
-				TestScene.AddShape(
-					&TestModel,
-					NewSpecularMaterial,
-					random_pos,
-					{ 1, 1, 1 },
-					{ Range.GetRandom() * 360, Range.GetRandom() * 360, Range.GetRandom() * 360 }
-				);
-			}
-			else
-			{
-				DiffuseMaterial* NewDiffuseMaterial = new DiffuseMaterial(RGB(202, 159, 117));
-				TestScene.AddShape(
-					&TestModel,
-					NewDiffuseMaterial,
-					random_pos,
-					{ 1, 1, 1 },
-					{ Range.GetRandom() * 360, Range.GetRandom() * 360, Range.GetRandom() * 360 }
-				);
-			}
-			
-		}
-		else if (u < 0.95) {
-			SpecularMaterial* NewSpecularMaterial = new SpecularMaterial( { Range.GetRandom(), Range.GetRandom(), Range.GetRandom() });
-			TestScene.AddShape(
-				&TestSphere,
-				NewSpecularMaterial,
-				random_pos,
-				{ 0.4, 0.4, 0.4 }
-			);
-		}
-		else {
-			random_pos.y += 6;
-			DiffuseMaterial* NewDiffuseMaterial = new DiffuseMaterial({ 1, 1, 1 });
-			NewDiffuseMaterial->SetEmissive({ Range.GetRandom() * 4, Range.GetRandom() * 4, Range.GetRandom() * 4 });
-			TestScene.AddShape(
-				&TestSphere,
-				NewDiffuseMaterial,
-				random_pos
-			);
-		}
+		TestScene.AddShape(
+			&TestSphere,
+			new DielectricMaterial{ 1.f + 0.2f * (i + 3), { 1, 1, 1 } },
+			{ 0, 0.5, i * 2 },
+			{ 0.8, 0.8, 0.8 }
+		);
 	}
-	DiffuseMaterial* NewPlanDiffuseMaterial = new DiffuseMaterial(RGB(120, 204, 157));
-	TestScene.AddShape(&TestPlane, NewPlanDiffuseMaterial, { 0, -0.5, 0 });
+	for (int i = -3; i <= 3; i++) 
+	{
+		glm::vec3 C = RGB::GenerateHeatmapRGB((i + 3.f) / 6.f);
+		TestScene.AddShape(
+			&TestSphere,
+			new ConductorMaterial{
+				glm::vec3(2.f - C * 2.f),
+				glm::vec3(2.f + C * 3.f),
+			},
+			{ 0, 2.5, i * 2 },
+			{ 0.8, 0.8, 0.8 }
+			);
+	}
+
+	TestScene.AddShape(
+		&TestModel,
+		new DielectricMaterial { 1.8f, RGB(128, 191, 131) },
+		{ -5, 0.4, 1.5 },
+		{ 2, 2, 2 }
+	);
+	TestScene.AddShape(
+		&TestModel,
+		new ConductorMaterial { { 0.1, 1.2, 1.8 }, { 5, 2.5, 2 } },
+		{ -5, 0.4, -1.5 },
+		{ 2, 2, 2 }
+	);
+
+	TestScene.AddShape(&TestPlane, new GroundMaterial{ RGB(120, 204, 157) }, { 0, -0.5, 0 });
+	auto* light_material = new DiffuseMaterial{ { 1, 1, 1 } };
+	light_material->SetEmissive({ 0.95, 0.95, 1 });
+	TestScene.AddShape(&TestPlane, light_material, { 0, 10, 0 });
 	TestScene.BuildTree();
-    NormalRenderer* TestNormalRenderer = new NormalRenderer(TestCamera, TestScene);
+    /*NormalRenderer* TestNormalRenderer = new NormalRenderer(TestCamera, TestScene);
 	TestNormalRenderer->Render(1, "Output/Normal.ppm");
     delete TestNormalRenderer;
 
@@ -105,7 +91,7 @@ int main()
 
     TriangleTestCountRenderer* TestTriangleTestCountRenderer = new TriangleTestCountRenderer(TestCamera, TestScene);
     TestTriangleTestCountRenderer->Render(1, "Output/TriangleTestCount.ppm");
-    delete TestTriangleTestCountRenderer;
+    delete TestTriangleTestCountRenderer;*/
 
 	PathTraceRenderer* TestPathTraceRenderer = new PathTraceRenderer(TestCamera, TestScene);
 	TestPathTraceRenderer->Render(128, "Output/PathTrace.ppm");

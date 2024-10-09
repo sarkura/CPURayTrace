@@ -5,7 +5,7 @@
 class Material
 {
 public:
-	virtual glm::vec3 Sample_BRDF(const glm::vec3& LocalViewDirection, glm::vec3& Beta, const RandomDistribution<float>& RandHandle) const = 0;
+	virtual glm::vec3 SampleBSDF(const glm::vec3& HitPostion, const glm::vec3& LocalViewDirection, glm::vec3& Beta, const RandomDistribution<float>& RandHandle) const = 0;
 
 	void SetEmissive(const glm::vec3& InEmissive);
 	glm::vec3 GetEmissive() const;
